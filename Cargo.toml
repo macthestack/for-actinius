@@ -5,7 +5,7 @@ name = "for-actinius"
 version = "0.1.0"
 
 [dependencies]
-actinius-icarus-bsp = {git = "https://github.com/macthestack/actinius-icarus"}
+actinius-icarus-bsp = {git = "https://github.com/macthestack/actinius-icarus", default-features = false}
 cortex-m = "*"
 cortex-m-rt = "*"
 cortex-m-rtic = "*"

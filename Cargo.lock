@@ -3,7 +3,7 @@
 [[package]]
 name = "actinius-icarus-bsp"
 version = "0.1.0"
-source = "git+https://github.com/macthestack/actinius-icarus#58b14ea4db72a62e8387345335c9bb3fed9cbca5"
+source = "git+https://github.com/macthestack/actinius-icarus#cf5446894122d3bd58020b4979f10643eda19b54"
 dependencies = [
  "nrf9160-hal",
 ]
