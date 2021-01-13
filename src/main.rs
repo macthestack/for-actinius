@@ -80,7 +80,6 @@ const APP: () = {
         }
     }
     extern "C" {
-        // Using TIMER0 when EGU3-EGU5 are locked(?).
-        fn TIMER0();
+        fn EGU1();
     }
 };
