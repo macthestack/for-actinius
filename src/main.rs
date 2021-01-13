@@ -59,6 +59,7 @@ const APP: () = {
     #[task(resources = [leds])]
     fn disco(c: disco::Context) {
         rprintln!("Disco.");
+
         for i in 0..128 {
             let color = match i % 6 {
                 0 => LedState::Red,
@@ -71,6 +72,7 @@ const APP: () = {
             c.resources.leds.set_state(color);
             cortex_m::asm::delay(2_000_000)
         }
+
         c.resources.leds.set_state(LedState::Off);
     }
 
