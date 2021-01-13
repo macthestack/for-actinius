@@ -3,13 +3,14 @@
 
 mod leds;
 
+use panic_reset as _;
+
 use actinius_icarus_bsp::{
-    hal::{prelude::_embedded_hal_timer_CountDown, Timer},
+    hal::{prelude::_embedded_hal_timer_CountDown, timer::Periodic, Timer},
     pac::TIMER2_NS as TIMER,
     Board, Leds,
 };
 use leds::{LedState, SettableLeds};
-use panic_reset as _;
 use rtt_target::{rprintln, rtt_init_print};
 
 // Run every 10 seconds.
@@ -19,19 +20,24 @@ const INTERVAL: u32 = 10 * 1_000_000;
 const APP: () = {
     struct Resources {
         leds: Leds,
-        timer: Timer<TIMER>,
+        timer: Timer<TIMER, Periodic>,
     }
-    #[init(spawn = [setup])]
+
+    #[init(spawn = [disco])]
     fn init(c: init::Context) -> init::LateResources {
         rtt_init_print!();
+
         rprintln!("Start.");
 
         let mut board = Board::new(c.core, c.device);
         board.leds.set_state(LedState::Red);
 
         let timer = Timer::new(board.TIMER2_NS);
+        let mut timer = timer.into_periodic();
+        timer.enable_interrupt();
+        timer.start(INTERVAL);
 
-        c.spawn.setup().unwrap();
+        c.spawn.disco().unwrap();
 
         init::LateResources {
             leds: board.leds,
@@ -39,24 +45,19 @@ const APP: () = {
         }
     }
 
-    #[task(resources = [leds, timer])]
-    fn setup(c: setup::Context) {
-        c.resources.leds.set_state(LedState::Yellow);
-
-        c.resources.timer.enable_interrupt();
-
-        c.resources.timer.start(1u32);
-    }
-
-    #[task(binds = TIMER2, resources = [timer, leds], spawn = [runner])]
+    #[task(binds = TIMER2, resources = [timer], spawn = [disco])]
     fn timer_handle(c: timer_handle::Context) {
-        c.resources.timer.start(INTERVAL);
+        // Clearing Interrupt.
+        c.resources
+            .timer
+            .event_compare_cc0()
+            .write(|w| unsafe { w.bits(0) });
 
-        c.spawn.runner().unwrap();
+        c.spawn.disco().unwrap();
     }
 
     #[task(resources = [leds])]
-    fn runner(c: runner::Context) {
+    fn disco(c: disco::Context) {
         rprintln!("Disco.");
         for i in 0..128 {
             let color = match i % 6 {
@@ -79,6 +80,7 @@ const APP: () = {
             cortex_m::asm::wfi();
         }
     }
+
     extern "C" {
         fn EGU1();
     }
